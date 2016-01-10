@@ -208,7 +208,7 @@ namespace DLToolkit.Forms.Controls
 		public IList FlowItemsSource
 		{
 			get { return (IList)GetValue(FlowItemsSourceProperty); }
-			private set { SetValue(FlowItemsSourceProperty, value); }
+			set { SetValue(FlowItemsSourceProperty, value); }
 		}
 
 		/// <summary>
