@@ -51,7 +51,7 @@ namespace DLToolkit.Forms.Controls
 		/// OBSOLETE! Gets or sets FlowListView group key selector.
 		/// </summary>
 		/// <value>The flow group key selector.</value>
-		[Obsolete("You should use FlowGroupGroupingKeySelector property as it's XAML compatible")]
+		[Obsolete("You should use FlowGroupGroupingKeySelector property as ite's XAML compatible")]
 		public Func<object, object> FlowGroupKeySelector 
 		{ 
 			get
