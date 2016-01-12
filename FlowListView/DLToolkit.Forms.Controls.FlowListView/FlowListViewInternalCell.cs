@@ -5,7 +5,10 @@ using System.Collections;
 
 namespace DLToolkit.Forms.Controls
 {
-	internal class FlowListViewInternalCell : ViewCell
+	/// <summary>
+	/// Flow list view internal cell.
+	/// </summary>
+	public class FlowListViewInternalCell : ViewCell
 	{
 		readonly AbsoluteLayout rootLayout;
 
@@ -19,19 +22,24 @@ namespace DLToolkit.Forms.Controls
 
 		readonly WeakReference<FlowListView> flowListViewRef;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="DLToolkit.Forms.Controls.FlowListViewInternalCell"/> class.
+		/// </summary>
+		/// <param name="flowListViewRef">Flow list view reference.</param>
 		public FlowListViewInternalCell(WeakReference<FlowListView> flowListViewRef)
 		{
+			this.flowListViewRef = flowListViewRef;
+			FlowListView flowListView = null;
+			flowListViewRef.TryGetTarget(out flowListView);
+
 			rootLayout = new AbsoluteLayout() {
 				HorizontalOptions = LayoutOptions.FillAndExpand,
 				VerticalOptions = LayoutOptions.FillAndExpand,
 				Padding = 0d,
+				BackgroundColor = flowListView.FlowRowBackgroundColor,
 			};
 
 			View = rootLayout;
-
-			this.flowListViewRef = flowListViewRef;
-			FlowListView flowListView = null;
-			flowListViewRef.TryGetTarget(out flowListView);
 
 			flowColumnsTemplates = flowListView.FlowColumnsTemplates;
 			desiredColumnCount = flowListView.DesiredColumnCount;
@@ -215,6 +223,10 @@ namespace DLToolkit.Forms.Controls
 			rootLayout.Children.Add(view, bounds, AbsoluteLayoutFlags.All);
 		}
 
+		/// <summary>
+		/// Override this method to execute an action when the BindingContext changes.
+		/// </summary>
+		/// <remarks></remarks>
 		protected override void OnBindingContextChanged()
 		{
 			rootLayout.BindingContext = BindingContext;

@@ -35,6 +35,7 @@ namespace DLToolkit.Forms.Controls
 			SizeChanged += FlowListSizeChanged;
 			PropertyChanged += FlowListViewPropertyChanged;
 			PropertyChanging += FlowListViewPropertyChanging;
+
 			FlowGroupKeySorting = FlowSorting.Ascending;
 			FlowGroupItemSorting = FlowSorting.Ascending;
 			FlowColumnExpand = FlowColumnExpand.None;
@@ -42,9 +43,16 @@ namespace DLToolkit.Forms.Controls
 			GroupDisplayBinding = new Binding("Key");
 			FlowAutoColumnCount = false;
 			FlowColumnDefaultMinimumWidth = 50d;
+			FlowRowBackgroundColor = Color.Transparent;
 
 			var flowListViewRef = new WeakReference<FlowListView>(this);
 			ItemTemplate = new DataTemplate(() => new FlowListViewInternalCell(flowListViewRef));
+			SeparatorVisibility = SeparatorVisibility.None;
+			SeparatorColor = Color.Transparent;
+
+			ItemSelected += FlowListViewItemSelected;
+			ItemAppearing += FlowListViewItemAppearing;
+			ItemDisappearing += FlowListViewItemDisappearing;
 		}
 
 		/// <summary>
@@ -162,9 +170,26 @@ namespace DLToolkit.Forms.Controls
 		public double FlowColumnDefaultMinimumWidth { get; set; }
 
 		/// <summary>
+		/// Gets or sets the color of the flow default row background.
+		/// Default: Transparent
+		/// </summary>
+		/// <value>The color of the flow default row background.</value>
+		public Color FlowRowBackgroundColor { get; set; }
+
+		/// <summary>
 		/// Occurs when FlowListView item is tapped.
 		/// </summary>
 		public event EventHandler<ItemTappedEventArgs> FlowItemTapped;
+
+		/// <summary>
+		/// Occurs when flow item is appearing.
+		/// </summary>
+		public event EventHandler<ItemVisibilityEventArgs> FlowItemAppearing;
+
+		/// <summary>
+		/// Occurs when flow item is disappearing.
+		/// </summary>
+		public event EventHandler<ItemVisibilityEventArgs> FlowItemDisappearing;
 
 		/// <summary>
 		/// FlowLastTappedItemProperty.
@@ -250,6 +275,8 @@ namespace DLToolkit.Forms.Controls
 
 		internal void FlowPerformTap(object item)
 		{
+			FlowLastTappedItem = item;
+
 			EventHandler<ItemTappedEventArgs> handler = FlowItemTapped;
 			if (handler != null)
 			{
@@ -260,8 +287,6 @@ namespace DLToolkit.Forms.Controls
 			{
 				FlowItemTappedCommand.Execute(item);
 			}
-
-			FlowLastTappedItem = item;
 		}
 
 		int desiredColumnCount;
@@ -328,7 +353,7 @@ namespace DLToolkit.Forms.Controls
 			}
 		}
 
-		private void FlowListViewPropertyChanged (object sender, PropertyChangedEventArgs e)
+		private void FlowListViewPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == FlowItemsSourceProperty.PropertyName)
 			{
@@ -346,9 +371,48 @@ namespace DLToolkit.Forms.Controls
 			}
 		}
 
-		private void FlowItemsSourceCollectionChanged (object sender, NotifyCollectionChangedEventArgs e)
+		private void FlowItemsSourceCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			ForceReload();
+		}
+
+		private void FlowListViewItemSelected (object sender, SelectedItemChangedEventArgs e)
+		{
+			SelectedItem = null;
+		}
+
+		private void FlowListViewItemAppearing (object sender, ItemVisibilityEventArgs e)
+		{
+			var container = e.Item as IEnumerable;
+
+			if (container != null)
+			{
+				EventHandler<ItemVisibilityEventArgs> handler = FlowItemAppearing;
+				if (handler != null)
+				{
+					foreach (var item in container)
+					{
+						handler(this, new ItemVisibilityEventArgs(item));
+					}	
+				}
+			}
+		}
+
+		private void FlowListViewItemDisappearing(object sender, ItemVisibilityEventArgs e)
+		{
+			var container = e.Item as IEnumerable;
+
+			if (container != null)
+			{
+				EventHandler<ItemVisibilityEventArgs> handler = FlowItemDisappearing;
+				if (handler != null)
+				{
+					foreach (var item in container)
+					{
+						handler(this, new ItemVisibilityEventArgs(item));
+					}	
+				}
+			}
 		}
 
 		private void ReloadContainerList()
@@ -445,6 +509,9 @@ namespace DLToolkit.Forms.Controls
 		/// <see cref="DLToolkit.Forms.Controls.FlowListView"/> was occupying.</remarks>
 		public void Dispose()
 		{
+			ItemSelected -= FlowListViewItemSelected;
+			ItemAppearing -= FlowListViewItemAppearing;
+			ItemDisappearing -= FlowListViewItemDisappearing;
 			PropertyChanged -= FlowListViewPropertyChanged;
 			PropertyChanging -= FlowListViewPropertyChanging;
 			SizeChanged -= FlowListSizeChanged;
