@@ -44,6 +44,8 @@ namespace DLToolkit.Forms.Controls
 			FlowAutoColumnCount = false;
 			FlowColumnDefaultMinimumWidth = 50d;
 			FlowRowBackgroundColor = Color.Transparent;
+			FlowTappedBackgroundColor = Color.Transparent;
+			FlowTappedBackgroundDelay = 0;
 
 			var flowListViewRef = new WeakReference<FlowListView>(this);
 			ItemTemplate = new DataTemplate(() => new FlowListViewInternalCell(flowListViewRef));
@@ -192,6 +194,36 @@ namespace DLToolkit.Forms.Controls
 		public event EventHandler<ItemVisibilityEventArgs> FlowItemDisappearing;
 
 		/// <summary>
+		/// FlowTappedBackgroundColor property.
+		/// </summary>
+		public static BindableProperty FlowTappedBackgroundColorProperty = BindableProperty.Create<FlowListView, Color>(v => v.FlowTappedBackgroundColor, Color.Transparent);
+
+		/// <summary>
+		/// Gets or sets the background color of the cell when tapped.
+		/// </summary>
+		/// <value>The color of the flow tapped background.</value>
+		public Color FlowTappedBackgroundColor
+		{
+			get { return (Color)GetValue(FlowTappedBackgroundColorProperty); }
+			set { SetValue(FlowTappedBackgroundColorProperty, value);  }
+		}
+
+		/// <summary>
+		/// FlowTappedBackgroundDelay property.
+		/// </summary>
+		public static BindableProperty FlowTappedBackgroundDelayProperty = BindableProperty.Create<FlowListView, int>(v => v.FlowTappedBackgroundDelay, 0);
+
+		/// <summary>
+		/// Gets or sets the background color delay of the cell when tapped (miliseconds).
+		/// </summary>
+		/// <value>The flow tapped background delay.</value>
+		public int FlowTappedBackgroundDelay
+		{
+			get { return (int)GetValue(FlowTappedBackgroundDelayProperty); }
+			set { SetValue(FlowTappedBackgroundDelayProperty, value);  }
+		}
+
+		/// <summary>
 		/// FlowLastTappedItemProperty.
 		/// </summary>
 		public static BindableProperty FlowLastTappedItemProperty = BindableProperty.Create<FlowListView, object>(v => v.FlowLastTappedItem, default(object), BindingMode.OneWayToSource);
@@ -219,6 +251,36 @@ namespace DLToolkit.Forms.Controls
 		{
 			get { return (ICommand)GetValue(FlowItemTappedCommandProperty); }
 			set { SetValue(FlowItemTappedCommandProperty, value); }
+		}
+
+		/// <summary>
+		/// FlowItemAppearingCommandProperty.
+		/// </summary>
+		public static BindableProperty FlowItemAppearingCommandProperty = BindableProperty.Create<FlowListView, ICommand>(v => v.FlowItemAppearingCommand, null);
+
+		/// <summary>
+		/// Gets or sets FlowListView item tapped command.
+		/// </summary>
+		/// <value>FlowListView item tapped command.</value>
+		public ICommand FlowItemAppearingCommand
+		{
+			get { return (ICommand)GetValue(FlowItemAppearingCommandProperty); }
+			set { SetValue(FlowItemAppearingCommandProperty, value); }
+		}
+
+		/// <summary>
+		/// FlowItemDisappearingCommandProperty.
+		/// </summary>
+		public static BindableProperty FlowItemDisappearingCommandProperty = BindableProperty.Create<FlowListView, ICommand>(v => v.FlowItemDisappearingCommand, null);
+
+		/// <summary>
+		/// Gets or sets FlowListView item tapped command.
+		/// </summary>
+		/// <value>FlowListView item tapped command.</value>
+		public ICommand FlowItemDisappearingCommand
+		{
+			get { return (ICommand)GetValue(FlowItemDisappearingCommandProperty); }
+			set { SetValue(FlowItemDisappearingCommandProperty, value); }
 		}
 
 		/// <summary>
@@ -283,9 +345,10 @@ namespace DLToolkit.Forms.Controls
 				handler(this, new ItemTappedEventArgs(null, item));
 			}
 
-			if (FlowItemTappedCommand != null && FlowItemTappedCommand.CanExecute(item)) 
+			var command = FlowItemTappedCommand;
+			if (command != null && command.CanExecute(item)) 
 			{
-				FlowItemTappedCommand.Execute(item);
+				command.Execute(item);
 			}
 		}
 
@@ -384,6 +447,7 @@ namespace DLToolkit.Forms.Controls
 		private void FlowListViewItemAppearing (object sender, ItemVisibilityEventArgs e)
 		{
 			var container = e.Item as IEnumerable;
+			var command = FlowItemAppearingCommand;
 
 			if (container != null)
 			{
@@ -393,6 +457,9 @@ namespace DLToolkit.Forms.Controls
 					foreach (var item in container)
 					{
 						handler(this, new ItemVisibilityEventArgs(item));
+
+						if (command != null && command.CanExecute(item))
+							command.Execute(item);
 					}	
 				}
 			}
@@ -401,6 +468,7 @@ namespace DLToolkit.Forms.Controls
 		private void FlowListViewItemDisappearing(object sender, ItemVisibilityEventArgs e)
 		{
 			var container = e.Item as IEnumerable;
+			var command = FlowItemDisappearingCommand;
 
 			if (container != null)
 			{
@@ -410,6 +478,9 @@ namespace DLToolkit.Forms.Controls
 					foreach (var item in container)
 					{
 						handler(this, new ItemVisibilityEventArgs(item));
+
+						if (command != null && command.CanExecute(item))
+							command.Execute(item);
 					}	
 				}
 			}
